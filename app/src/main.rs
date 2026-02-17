@@ -31,6 +31,10 @@ fn main() {
     info!("Created user2: {:#?}", user2);
     db.save_user("user2".to_string(), user2);
 
+    info!("get all users after delete user1");
+    let users = db.find_all();
+    info!("Users found: {:#?}", users);
+
     info!("get user of key -> user1");
     let user = db.find_user("user1");
     info!("User found: {:#?}", user);
