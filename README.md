@@ -1,192 +1,195 @@
-# Rust Learning - User Database Application
+# Rust Learning - CRUD de Usuários
 
-Projeto de aprendizado de Rust implementando um sistema de gerenciamento de usuários em memória com operações CRUD básicas.
+Projeto de aprendizado em Rust implementando um CRUD completo de usuários com SQLite.
 
 ## 📋 Descrição
 
-Este projeto é uma aplicação simples desenvolvida em Rust para fins educacionais, demonstrando conceitos fundamentais da linguagem como:
+Aplicação assíncrona em Rust que demonstra operações básicas de CRUD (Create, Read, Update, Delete) com banco de dados SQLite, utilizando SQLx para persistência de dados e Tokio como runtime assíncrono.
 
-- Estruturas de dados (structs)
-- Traits e implementações
-- Sistema de módulos
-- Gerenciamento de memória
-- Logging com tracing
-- Collections (HashMap)
-
-A aplicação implementa um banco de dados em memória para gerenciar usuários com operações básicas de Create, Read, Update e Delete (CRUD).
-
-## 📊 Diagrama de Fluxo
-
-```mermaid
-flowchart TD
-    Start([Início da Aplicação]) --> Init[Inicializar Tracing Subscriber]
-    Init --> CreateUser1[Criar User1: Daniel]
-    CreateUser1 --> CreateUser2[Criar User2: Rustacean]
-
-    CreateUser2 --> SaveUser1[Salvar User1 no DB]
-    SaveUser1 --> SaveUser2[Salvar User2 no DB]
-
-    SaveUser2 --> FindUser[Buscar User1 por chave]
-    FindUser --> LogUser[Log: User encontrado]
-
-    LogUser --> DeleteUser[Deletar User1]
-    DeleteUser --> FindAll1[Buscar todos os usuários]
-    FindAll1 --> LogUsers1[Log: Usuários após deleção]
-
-    LogUsers1 --> UpdateUser[Atualizar User2]
-    UpdateUser --> FindAll2[Buscar todos os usuários]
-    FindAll2 --> LogUsers2[Log: Usuários após atualização]
-
-    LogUsers2 --> End([Fim da Aplicação])
-
-    style Start fill:#90EE90
-    style End fill:#FFB6C1
-    style CreateUser1 fill:#87CEEB
-    style CreateUser2 fill:#87CEEB
-    style SaveUser1 fill:#DDA0DD
-    style SaveUser2 fill:#DDA0DD
-    style FindUser fill:#F0E68C
-    style DeleteUser fill:#FFA07A
-    style UpdateUser fill:#98FB98
-```
-
-### Fluxo de Operações CRUD
-
-```mermaid
-flowchart LR
-    subgraph UserDB
-        DB[(HashMap<String, User>)]
-    end
-
-    Create[Create: save_user] --> DB
-    Read[Read: find_user/find_all] --> DB
-    Update[Update: update_user] --> DB
-    Delete[Delete: delete_user] --> DB
-
-    DB --> Result[Option<User> ou Vec<User>]
-
-    style Create fill:#90EE90
-    style Read fill:#87CEEB
-    style Update fill:#F0E68C
-    style Delete fill:#FFA07A
-    style DB fill:#DDA0DD
-```
-
-## 🚀 Funcionalidades
-
-- **Criar usuários**: Criação de novos usuários com nome, email e idade
-- **Buscar usuários**: Busca individual por chave ou listagem de todos os usuários
-- **Atualizar usuários**: Atualização de dados de usuários existentes
-- **Deletar usuários**: Remoção de usuários do banco de dados
-- **Logging**: Sistema de logs detalhado usando tracing
-
-## 🏗️ Estrutura do Projeto
-
-```
-src/
-├── main.rs              # Ponto de entrada da aplicação
-├── models/
-│   └── user.rs          # Modelo de dados do usuário
-├── service/
-│   └── db_memory.rs     # Implementação do banco de dados em memória
-└── utils/
-    └── utils.rs         # Funções utilitárias (geração de números aleatórios)
-```
-
-## 🛠️ Tecnologias Utilizadas
+## 🚀 Tecnologias Utilizadas
 
 - **Rust** (Edition 2024)
-- **tracing** - Sistema de logging estruturado
-- **tracing-subscriber** - Subscriber para outputs de logs
-- **rand** - Geração de números aleatórios
-- **Docker** - Containerização da aplicação
+- **SQLx** - Driver assíncrono para SQLite
+- **Tokio** - Runtime assíncrono
+- **Tracing** - Sistema de logging estruturado
+- **Anyhow** - Tratamento de erros simplificado
+- **Rand** - Geração de dados aleatórios
 
-## 📦 Dependências
+## 🏗️ Arquitetura
 
-```toml
-rand = "0.10.0-rc.8"
-tracing = "0.1"
-tracing-subscriber = "0.3"
-log = "0.4.29"
+O projeto segue uma arquitetura em camadas:
+
+```mermaid
+graph TB
+    subgraph "Camada de Apresentação"
+        A[main.rs]
+        style A fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    end
+
+    subgraph "Camada de Serviço"
+        B[UserService]
+        style B fill:#2196F3,stroke:#1565C0,stroke-width:3px,color:#fff
+    end
+
+    subgraph "Camada de Repositório"
+        C[UserDBSqlite]
+        style C fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#fff
+    end
+
+    subgraph "Camada de Dados"
+        D[(SQLite Database)]
+        style D fill:#9C27B0,stroke:#6A1B9A,stroke-width:3px,color:#fff
+    end
+
+    subgraph "Modelos"
+        E[User Model]
+        style E fill:#00BCD4,stroke:#006064,stroke-width:3px,color:#fff
+    end
+
+    subgraph "Utilitários"
+        F[Utils]
+        style F fill:#607D8B,stroke:#37474F,stroke-width:3px,color:#fff
+    end
+
+    A -->|usa| B
+    A -->|usa| E
+    A -->|usa| F
+    B -->|usa| C
+    B -->|usa| E
+    C -->|persiste| D
+    C -->|retorna| E
 ```
 
-## 🚀 Como Executar
+## 📦 Funcionalidades
 
-### Localmente
+A aplicação demonstra as seguintes operações:
 
-1. Certifique-se de ter o Rust instalado (https://rustup.rs/)
+- ✅ **Create**: Criação de usuários com dados aleatórios
+- ✅ **Read**: Listagem de todos os usuários
+- ✅ **Update**: Atualização de email do usuário
+- ✅ **Delete**: Remoção de usuários
 
-2. Clone o repositório e navegue até o diretório:
+## 🛠️ Instalação e Execução
+
+### Pré-requisitos
+
+- Rust (versão 1.93 ou superior)
+- Cargo
+
+### Executar localmente
+
 ```bash
+# Clonar o repositório
+git clone <url-do-repositorio>
+
+# Entrar no diretório
 cd app
-```
 
-3. Execute o projeto:
-```bash
+# Executar a aplicação
 cargo run
 ```
 
-4. Para compilar em modo release:
+### Executar com Docker
+
 ```bash
-cargo build --release
+# Build da imagem
+docker build -t rust-learning .
+
+# Executar container
+docker run rust-learning
 ```
 
-### Com Docker
+## 📊 Estrutura do Banco de Dados
 
-1. Build da imagem:
-```bash
-docker build -t rust-learning-app .
+```mermaid
+erDiagram
+    USERS {
+        INTEGER id PK "Auto Increment"
+        TEXT username "Nome do usuário"
+        TEXT email "Email do usuário"
+        INTEGER age "Idade"
+    }
 ```
 
-2. Execute o container:
-```bash
-docker run rust-learning-app
-```
-
-## 📝 Exemplo de Uso
-
-A aplicação demonstra todas as operações CRUD no arquivo `main.rs`:
-
-```rust
-// Criação de usuários
-let user1 = user_model::new(
-    String::from("Daniel"),
-    String::from("dds@test.com"),
-    generate_random_number(),
+**Schema SQL:**
+```sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    email TEXT NOT NULL,
+    age INTEGER NOT NULL
 );
-
-// Salvando no banco
-db.save_user("user1".to_string(), user1);
-
-// Buscando usuário
-let user = db.find_user("user1");
-
-// Atualizando usuário
-db.update_user("user1".to_string(), updated_user);
-
-// Deletando usuário
-db.delete_user("user1");
-
-// Listando todos os usuários
-let users = db.find_all();
 ```
 
-## 🎯 Objetivos de Aprendizado
+## 📝 Fluxo de Execução
 
-Este projeto foi criado para praticar:
+O programa executa automaticamente as seguintes operações:
 
-- ✅ Ownership e borrowing em Rust
-- ✅ Pattern matching e tratamento de Option<T>
-- ✅ Organização de código em módulos
-- ✅ Uso de HashMap e collections
-- ✅ Mutabilidade explícita
-- ✅ Sistema de logging
-- ✅ Containerização com Docker
+```mermaid
+sequenceDiagram
+    participant M as Main
+    participant S as UserService
+    participant R as Repository
+    participant DB as SQLite
+
+    rect rgb(232, 245, 233)
+        Note over M: 1. Inicialização
+        M->>DB: Conectar ao banco
+        DB-->>M: Conexão estabelecida
+        M->>S: Criar UserService
+    end
+
+    rect rgb(227, 242, 253)
+        Note over M,DB: 2. Create - Criar Usuário
+        M->>M: Gerar dados aleatórios
+        M->>S: create_user(user)
+        S->>R: save_user(user)
+        R->>DB: INSERT INTO users
+        DB-->>R: ✓ Sucesso
+        R-->>S: Ok
+        S-->>M: ✓ Usuário criado
+    end
+
+    rect rgb(255, 243, 224)
+        Note over M,DB: 3. Read - Buscar Usuários
+        M->>S: get_all_users()
+        S->>R: find_all()
+        R->>DB: SELECT * FROM users
+        DB-->>R: Retornar registros
+        R-->>S: Vec<User>
+        S-->>M: Lista de usuários
+    end
+
+    rect rgb(248, 231, 255)
+        Note over M,DB: 4. Update - Atualizar Email
+        M->>M: Gerar novo email
+        M->>S: update_user_email(id, email)
+        S->>R: update_user_email(id, email)
+        R->>DB: UPDATE users SET email
+        DB-->>R: ✓ Sucesso
+        R-->>S: Ok
+        S-->>M: ✓ Email atualizado
+    end
+
+    rect rgb(255, 235, 238)
+        Note over M,DB: 5. Delete - Remover Usuário
+        M->>S: delete_user(id)
+        S->>R: delete_user(id)
+        R->>DB: DELETE FROM users
+        DB-->>R: ✓ Sucesso
+        R-->>S: Ok
+        S-->>M: ✓ Usuário deletado
+    end
+```
+
+## 🔍 Logs
+
+A aplicação utiliza o sistema de tracing para logs estruturados, fornecendo informações detalhadas sobre:
+- Inicialização da aplicação
+- Operações de CRUD
+- Erros e exceções
 
 ## 📄 Licença
 
-Este é um projeto educacional para aprendizado de Rust.
+Projeto de aprendizado - uso livre para fins educacionais.
 
-## 👤 Autor
-
-Daniel Dias

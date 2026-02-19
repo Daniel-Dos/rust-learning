@@ -1,60 +1,72 @@
-mod service;
+mod repository;
 mod models;
 mod utils;
+mod service;
 
-use tracing::info;
-use models::user::User as user_model;
-use service::db_memory::UserDB as user_db;
-use utils::utils::generate_random_number as generate_random_number;
+use crate::utils::utils::{generate_random_email, generate_random_username, generate_random_number};
+use anyhow::{anyhow, Result};
+use crate::repository::db_sqlite::UserDBSqlite as user_db_sqlite;
+use crate::service::user_service::UserService as user_service;
+use tracing::{error, info};
+use crate::models::user::User as user_model;
 
-
-fn main() {
+#[tokio::main]
+async fn main() {
     tracing_subscriber::fmt::init();
+    info!("Iniciando o projeto");
 
-    info!("Create user");
-    let user1 = user_model::new(
-        String::from("Daniel"),
-        String::from("dds@test.com"),
-        generate_random_number(),
-    );
+    if let Err(e) = run().await {
+        eprintln!("Fatal error: {:#}", e);
+        error!("Fatal error: {:#}", e);
+    }
 
-    let user2 = user_model::new(
-        String::from("Rustacean"),
-        String::from("dds@test.com"),
-        generate_random_number(),
-    );
+    info!("Fim do projeto");
+}
 
-    info!("Created user1: {:#?}", user1);
-    let mut db = user_db::new();
-    db.save_user("user1".to_string(), user1);
+async fn run() -> Result<()> {
+    let user_db = user_db_sqlite::init_db().await?;
+    let user_service = user_service::new(user_db);
 
-    info!("Created user2: {:#?}", user2);
-    db.save_user("user2".to_string(), user2);
+    info!("criado o usuario.");
+    let user1 = user_model::new(String::from(generate_random_username()),
+                                     String::from(generate_random_email()),
+                                     generate_random_number());
+    info!("Salvando o usuario");
+    user_service.create_user(&user1).await
+        .map(|_| info!("Usuario: {} salvo com sucesso!", user1.username()))
+        .map_err(|e| {
+            error!("Erro ao salvar o usuario: {}", e);
+            e
+        })?;
 
-    info!("get all users after delete user1");
-    let users = db.find_all();
-    info!("Users found: {:#?}", users);
+    info!("Buscando todos os usuarios.");
+    let users: Vec<user_model> = user_service.get_all_users().await
+        .map(|users|{ info!("Usuarios: {:#?} recuperados com sucesso!", &users);
+            users
+        })
+        .map_err(|e| {
+            error!("Erro ao buscar os usuarios {}", e);
+            e
+        })?;
 
-    info!("get user of key -> user1");
-    let user = db.find_user("user1");
-    info!("User found: {:#?}", user);
+    info!("Update usuario.");
+    let user_id = users.first().ok_or_else(|| anyhow!("Nenhum usuario encontrado!"))?.id();
+    let novo_email = generate_random_email();
 
-    info!("delete user of key -> user1");
-    db.delete_user("user1");
+    user_service.update_user_email(user_id, &novo_email).await
+        .map(|_| info!("Usuario: {} atualizado com sucesso!", user_id))
+        .map_err(|e| {
+            error!("Erro ao atualizar o usuario: {}", e);
+            e
+        })?;
 
-    info!("get all users after delete user1");
-    let users = db.find_all();
-    info!("Users found: {:#?}", users);
+    info!("Deletando usuario.");
+    user_service.delete_user(user_id).await
+        .map(|_| info!("Usuario: {} deletado com sucesso!", user_id))
+        .map_err(|e| {
+            error!("Erro ao deletar o usuario: {}", e);
+            e
+        })?;
 
-    info!("update user of key -> user2");
-    let user2_updated = user_model::new(
-        String::from("Rustacean"),
-        String::from("rustacean@rust.com"),
-        generate_random_number(),
-    );
-    db.update_user("user2".to_string(), user2_updated);
-
-    info!("get all users after update user2");
-    let users = db.find_all();
-    info!("Users found: {:#?}", users);
+    Ok(())
 }
