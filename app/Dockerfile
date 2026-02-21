@@ -5,6 +5,6 @@ COPY user-rust.db /app/user-rust.db
 RUN cargo build --release
 
 FROM gcr.io/distroless/cc-debian12
-COPY --from=build-env /app/target/release/app /
+COPY --from=build-env /app/target/release/app_rust /
 COPY --from=build-env /app/user-rust.db /user-rust.db
-CMD ["./app"]
+CMD ["./app_rust"]

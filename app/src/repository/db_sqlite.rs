@@ -1,6 +1,5 @@
-use sqlx::{SqlitePool};
-use tracing::{info, warn};
 use crate::models::user::User;
+use sqlx::SqlitePool;
 
 pub struct UserDBSqlite {
     db: SqlitePool,
@@ -10,6 +9,10 @@ impl UserDBSqlite {
     pub async fn init_db() -> Result<Self, sqlx::Error> {
         let db = SqlitePool::connect("sqlite:user-rust.db").await?;
         Ok(Self { db })
+    }
+
+    pub fn new(pool: SqlitePool) -> Self {
+        Self { db: pool }
     }
 
     pub async fn save_user(&self, user: &User) -> Result<(), sqlx::Error> {
@@ -22,7 +25,7 @@ impl UserDBSqlite {
         Ok(())
     }
 
-    pub async fn find_all(&self) -> Result<Vec<User>, sqlx::Error> {
+    pub async fn find_all_users(&self) -> Result<Vec<User>, sqlx::Error> {
         let users= sqlx::query_as::<_, User>("select * from users")
             .fetch_all(&self.db)
             .await?;

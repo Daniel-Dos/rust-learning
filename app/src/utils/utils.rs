@@ -1,6 +1,5 @@
 use rand::distr::Alphabetic;
 use rand::RngExt;
-use tracing::info;
 
 pub fn generate_random_number() -> i32 {
     let mut rng  = rand::rng();

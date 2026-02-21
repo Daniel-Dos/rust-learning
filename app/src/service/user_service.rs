@@ -16,7 +16,7 @@ impl UserService {
     }
 
     pub async fn get_all_users(&self) -> Result<Vec<User>, sqlx::Error> {
-        let users = self.db.find_all().await?;
+        let users = self.db.find_all_users().await?;
         Ok(users)
     }
 
