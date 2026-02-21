@@ -2,17 +2,16 @@ use sqlx::SqlitePool;
 use app_rust::repository::db_sqlite::UserDBSqlite;
 use app_rust::models::user::User;
 
-async fn setup_db(pool: SqlitePool) {
+async fn setup_db(pool: &SqlitePool) {
     sqlx::query(r#"CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT,
                        username TEXT NOT NULL, email TEXT NOT NULL,
                        age INTEGER NOT NULL);"#)
-        .execute(&pool)
-        .await
-        .unwrap();
+        .execute(pool)
+        .await.unwrap();
 }
 #[sqlx::test]
 async fn should_save_and_get_user(pool: SqlitePool) {
-    setup_db(pool.clone()).await;
+    setup_db(&pool).await;
 
     let db = UserDBSqlite::new(pool);
 
@@ -26,7 +25,7 @@ async fn should_save_and_get_user(pool: SqlitePool) {
 
 #[sqlx::test]
 async fn should_delete_user(pool: SqlitePool){
-    setup_db(pool.clone()).await;
+    setup_db(&pool).await;
     let db = UserDBSqlite::new(pool);
 
     let user1  = User::new("Teste".to_string(),"teste@teste.com".to_string(), 20);
@@ -41,7 +40,7 @@ async fn should_delete_user(pool: SqlitePool){
 
 #[sqlx::test]
 async fn should_update_user_email(pool: SqlitePool){
-    setup_db(pool.clone()).await;
+    setup_db(&pool).await;
     let db = UserDBSqlite::new(pool);
 
     let user1  = User::new("Teste".to_string(),"teste@teste.com".to_string(), 20);

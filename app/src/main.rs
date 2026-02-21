@@ -24,7 +24,7 @@ async fn main() {
 }
 
 async fn run() -> Result<()> {
-    let user_db = user_db_sqlite::init_db().await?;
+    let user_db = user_db_sqlite::new(sqlx::SqlitePool::connect("sqlite:user-rust.db").await?);
     let user_service = user_service::new(user_db);
 
     info!("criado o usuario.");
