@@ -1,12 +1,15 @@
 [package]
-name = "app"
+name = "app_rust"
 version = "0.1.0"
 edition = "2024"
+
+[profile.dev]
+incremental = true
 
 [dependencies]
 rand = "0.10.0-rc.8"
 tracing = "0.1"
 tracing-subscriber = "0.3"
-sqlx = { version = "0.8", features = [ "sqlite","runtime-tokio" ] }
+sqlx = { version = "0.8", features = [ "sqlite","runtime-tokio"] }
 tokio = { version = "1.49.0", features = ["rt", "rt-multi-thread", "macros"] }
 anyhow = "1.0.101"
