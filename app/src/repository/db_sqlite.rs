@@ -6,11 +6,6 @@ pub struct UserDBSqlite {
 }
 
 impl UserDBSqlite {
-    pub async fn init_db() -> Result<Self, sqlx::Error> {
-        let db = SqlitePool::connect("sqlite:user-rust.db").await?;
-        Ok(Self { db })
-    }
-
     pub fn new(pool: SqlitePool) -> Self {
         Self { db: pool }
     }
