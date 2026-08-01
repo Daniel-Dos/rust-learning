@@ -1,4 +1,4 @@
-FROM rust:1.93-slim as build-env
+FROM rust:1.97-slim as build-env
 WORKDIR /app
 COPY . /app
 COPY user-rust.db /app/user-rust.db
