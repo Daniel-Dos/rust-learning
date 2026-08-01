@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 #[derive(sqlx::FromRow, Debug)]
 pub struct User {
     id: i32,

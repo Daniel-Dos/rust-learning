@@ -2,3 +2,4 @@ pub mod repository;
 pub mod models;
 pub mod service;
 pub mod utils;
+pub mod rest;
