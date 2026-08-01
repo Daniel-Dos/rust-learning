@@ -1,12 +1,13 @@
 use crate::models::user::User;
-use sqlx::SqlitePool;
+use sqlx::{Pool, Sqlite, SqlitePool};
 
+#[derive(Clone)]
 pub struct UserDBSqlite {
     db: SqlitePool,
 }
 
 impl UserDBSqlite {
-    pub fn new(pool: SqlitePool) -> Self {
+    pub fn new(pool: Pool<Sqlite>) -> Self {
         Self { db: pool }
     }
 
