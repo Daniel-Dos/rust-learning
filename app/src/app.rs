@@ -35,7 +35,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let app_state = AppState {
         user_service: user_servicer,
     };
-    let app = router_user::router_users(app_state).await;
+    let app = router_user::router_users(app_state);
     server(app).await?;
 
     Ok(())
