@@ -2,8 +2,11 @@ use axum::Router;
 use tracing::info;
 
 pub async fn server(app: Router) -> Result<(), anyhow::Error> {
-    info!("Server starting on http://localhost:8080");
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8080").await?;
+    let host = std::env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
+    let port = std::env::var("PORT").unwrap_or_else(|_| "8080".to_string());
+    let address = format!("{host}:{port}");
+    info!("Server starting on http://{address}");
+    let listener = tokio::net::TcpListener::bind(&address).await?;
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
         .await?;

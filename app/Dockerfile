@@ -1,10 +1,17 @@
-FROM rust:1.97-slim as build-env
+FROM rust:1.97-slim AS build-env
 WORKDIR /app
-COPY . /app
-COPY user-rust.db /app/user-rust.db
-RUN cargo build --release
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+RUN cargo build --release --bin api_rest
+COPY user-rust.db ./user-rust.db
+RUN mkdir -p /bundle \
+    && cp /app/target/release/api_rest /bundle/api_rest \
+    && cp /app/user-rust.db /bundle/user-rust.db \
+    && chown -R 65532:65532 /bundle
 
 FROM gcr.io/distroless/cc-debian12
-COPY --from=build-env /app/target/release/app_rust /
-COPY --from=build-env /app/user-rust.db /user-rust.db
-CMD ["./app_rust"]
+COPY --chown=65532:65532 --from=build-env /bundle /bundle
+USER nonroot
+WORKDIR /bundle
+EXPOSE 8080
+CMD ["/bundle/api_rest"]
