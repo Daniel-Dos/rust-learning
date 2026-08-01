@@ -29,4 +29,9 @@ impl UserService {
         self.db.update_user_email(id, email).await?;
         Ok(())
     }
+
+    pub async fn find_user_by_username(&self, username: &str) -> Result<User, sqlx::Error> {
+        let user = self.db.find_user(username).await?;
+        Ok(user)
+    }
 }

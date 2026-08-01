@@ -2,11 +2,12 @@ use axum::Router;
 use axum::http::StatusCode;
 use axum::routing::{get, post};
 use crate::rest::state::AppState;
-use crate::rest::user_handler::{create_user, get_users};
+use crate::rest::user_handler::{create_user, get_user, get_users};
 
 pub fn router_users(app: AppState) -> Router {
     Router::new()
         .route("/api/users", post(create_user).get(get_users))
+        .route("/api/users/{username}", get(get_user))
         .route("/health", get(health))
         .route("/ready", get(ready))
         .with_state(app)

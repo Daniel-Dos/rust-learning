@@ -10,11 +10,16 @@ http:
     type: json
     data: |-
       {
-       "username":"Teste",
-        "email": "teste@teste.com",
-        "age": 1
+       "username":"Teste3",
+        "email": "teste2@teste.com",
+        "age": 3
       }
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: bru.setVar("username", res.body.username);
 
 settings:
   encodeUrl: true

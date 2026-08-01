@@ -28,6 +28,15 @@ impl UserDBSqlite {
         Ok(users)
     }
 
+    pub async fn find_user(&self, username: &str) -> Result<User, sqlx::Error>{
+        let user = sqlx::query_as::<_, User>("select * from users where username = ?")
+            .bind(username)
+            .fetch_one(&self.db)
+            .await?;
+        Ok(user)
+    }
+
+
     pub async fn delete_user(&self, id: &i32) -> Result<(), sqlx::Error> {
         let resut = sqlx::query("Delete from users where id = ?")
             .bind(id)
