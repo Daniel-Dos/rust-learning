@@ -34,4 +34,9 @@ impl UserService {
         let user = self.db.find_user(username).await?;
         Ok(user)
     }
+
+    pub async fn delete_user_by_username(&self, username: &str) -> Result<(), sqlx::Error> {
+        self.db.delete_user_by_username(username).await?;
+        Ok(())
+    }
 }

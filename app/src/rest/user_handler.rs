@@ -62,3 +62,14 @@ pub async fn get_user(State(state): State<AppState>, Path(username):Path<String>
 
     Ok((StatusCode::OK, Json(user_response)))
 }
+
+pub async fn delete_user(State(state): State<AppState>,Path(username):Path<String>)
+    -> Result<(StatusCode, String), (StatusCode, String)> {
+    info!("Deletentando o usuario: {}", username);
+
+    state.user_service.delete_user_by_username(&username)
+        .await
+        .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
+
+    Ok((StatusCode::OK, format!("Usuario: {} deletado com sucesso!", username)))
+}

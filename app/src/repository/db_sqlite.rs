@@ -36,6 +36,17 @@ impl UserDBSqlite {
         Ok(user)
     }
 
+    pub async fn delete_user_by_username(&self, username: &str) -> Result<(), sqlx::Error> {
+        let result = sqlx::query("DELETE FROM users WHERE username = ?")
+            .bind(username)
+            .execute(&self.db)
+            .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(sqlx::Error::RowNotFound);
+        }
+        Ok(())
+    }
 
     pub async fn delete_user(&self, id: &i32) -> Result<(), sqlx::Error> {
         let resut = sqlx::query("Delete from users where id = ?")
