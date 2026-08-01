@@ -1,0 +1,30 @@
+info:
+  name: atualizar o email por usurio
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: http://localhost:8080/api/users/:username
+  params:
+    - name: username
+      value: Teste3
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "email": "test3@teste.com"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: bru.setVar("username", res.body.username);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

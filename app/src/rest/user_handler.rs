@@ -1,9 +1,10 @@
 use crate::models::user::User as user_model;
 use crate::rest::state::AppState;
-use crate::rest::user_request::UserRequest;
+use crate::rest::user_request::{UserRequest, UserUpdate};
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
+use serde::de::Unexpected::Option;
 use tracing::{error, info};
 
 pub async fn create_user(State(state): State<AppState>,payload: Json<UserRequest>)
@@ -91,4 +92,25 @@ pub async fn delete_user(State(state): State<AppState>,Path(username):Path<Strin
         })?;
 
     Ok((StatusCode::OK, format!("Usuario: {} deletado com sucesso!", username)))
+}
+
+pub async fn update_user(State(state): State<AppState>, Path(username):Path<String>, payload: Json<UserUpdate>)
+    -> Result<(StatusCode, String), (StatusCode, String)> {
+    info!("Atualizando o email do usuario: {}", username);
+
+    let Some(email) = payload.email.as_deref() else {
+        return Err((StatusCode::BAD_REQUEST, "Campo 'email' é obrigatório".to_string()));
+    };
+
+    state.user_service.update_user_email_by_username(&username, &email)
+        .await
+        .map_err(|e| {
+            error!("Erro ao atualizar email do usuario {}: {}", username, e);
+            match e {
+                crate::service::user_service::UserError::NotFound => (StatusCode::NOT_FOUND, e.to_string()),
+                _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string()),
+            }
+        })?;
+
+    Ok((StatusCode::OK, format!("Email do usuario: {} atualizado com sucesso!", username)))
 }

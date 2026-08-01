@@ -58,4 +58,12 @@ impl UserService {
         }
         Ok(())
     }
+
+    pub async fn update_user_email_by_username(&self, username: &str, email: &str) -> Result<(), UserError> {
+        let rows = self.db.update_user_email_by_username(username, email).await.map_err(UserError::from)?;
+        if rows == 0 {
+            return Err(UserError::NotFound);
+        }
+        Ok(())
+    }
 }

@@ -67,4 +67,14 @@ impl UserDBSqlite {
 
         Ok(result.rows_affected())
     }
+
+    pub async fn update_user_email_by_username(&self, username: &str, email: &str) -> Result<u64, sqlx::Error> {
+        let result = sqlx::query("update users set email = ? where username = ?")
+        .bind(email)
+        .bind(username)
+        .execute(&self.db)
+        .await?;
+        
+        Ok(result.rows_affected())
+    }
 }
