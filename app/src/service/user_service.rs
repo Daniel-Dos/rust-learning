@@ -1,6 +1,7 @@
 use crate::models::user::User;
 use crate::repository::db_sqlite::UserDBSqlite;
 
+#[derive(Clone)]
 pub struct UserService {
     db: UserDBSqlite,
 }

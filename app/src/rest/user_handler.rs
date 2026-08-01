@@ -1,48 +1,34 @@
-use axum::http::StatusCode;
-use axum::Json;
-use tracing::{error, info};
-use crate::models::user::{User as user_model, User};
+use crate::models::user::User as user_model;
 use crate::repository::db_sqlite::UserDBSqlite as user_db_sqlite;
+use crate::rest::state::AppState;
 use crate::rest::user_request::UserRequest;
 use crate::service::user_service::UserService as user_service;
+use axum::Json;
+use axum::extract::State;
+use axum::http::StatusCode;
+use tracing::{error, info};
 
-pub async fn create_user(payload: Json<UserRequest>) -> Result<(StatusCode, Json<UserRequest>), (StatusCode, String)> {
- info!("Criando um novo Usuario");
+pub async fn create_user(State(state): State<AppState>,payload: Json<UserRequest>) -> Result<(StatusCode, Json<UserRequest>), (StatusCode, String)> {
+    info!("Criando um novo Usuario");
 
- let user_db = user_db_sqlite::new(
-  sqlx::SqlitePool::connect("sqlite:user-rust.db")
-      .await
-      .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
- );
+    info!("Salvando o usuario");
+    let user = user_model::new(payload.username.clone(), payload.email.clone(), payload.age.clone());
 
- let user_servicer = user_service::new(user_db);
+    state.user_service.create_user(&user).await
+        .map(|_| info!("Usuario: {} salvo com sucesso!", payload.username))
+        .map_err(|e| {
+            error!("Erro ao salvar o usuario: {}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+        })?;
 
- info!("Salvando o usuario");
- let user = user_model::new(payload.username.clone(), payload.email.clone(), payload.age.clone());
-
- user_servicer.create_user(&user).await
-     .map(|_| info!("Usuario: {} salvo com sucesso!", payload.username))
-     .map_err(|e| {
-      error!("Erro ao salvar o usuario: {}", e);
-      (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
-     })?;
-
- Ok((StatusCode::CREATED, payload))
+    Ok((StatusCode::CREATED, payload))
 }
 
-pub async fn get_users() -> Result<(StatusCode, Json<Vec<UserRequest>>), (StatusCode, String)> {
+pub async fn get_users(State(state): State<AppState>) -> Result<(StatusCode, Json<Vec<UserRequest>>), (StatusCode, String)> {
     info!("Obtendo todos os usuarios.");
 
-    let user_db = user_db_sqlite::new(
-        sqlx::SqlitePool::connect("sqlite:user-rust.db")
-            .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-    );
-
-    let user_servicer = user_service::new(user_db);
-
-    let users = user_servicer.get_all_users().await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    let users = state.user_service.get_all_users().await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     let mut user_response:Vec<UserRequest>  = vec![];
 
