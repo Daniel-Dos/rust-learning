@@ -4,14 +4,27 @@ version = "0.1.0"
 edition = "2024"
 
 [profile.dev]
-opt-level = 0          # nenhuma otimização, build mais rápida
-debug = true           # mantém símbolos de debug
-incremental = true     # ativa compilação incremental
+debug = 1
+split-debuginfo = "unpacked"
+codegen-units = 256
+incremental=false
+opt-level=0
 
 [dependencies]
 rand = "0.10.0-rc.8"
 tracing = "0.1"
-tracing-subscriber = "0.3"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
 sqlx = { version = "0.8", features = ["sqlite","runtime-tokio","macros","migrate"], default-features = false }
 tokio = { version = "1.49.0", features = ["rt-multi-thread", "macros"] }
 anyhow = "1.0.101"
+serde_json = "1.0"
+axum = { version = "0.8.9" }
+serde = { version = "1.0.228", features = ["derive"] }
+
+[[bin]]
+name = "api_rest"
+path = "src/app.rs"
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
