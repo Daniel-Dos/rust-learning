@@ -1,8 +1,6 @@
 use crate::models::user::User as user_model;
-use crate::repository::db_sqlite::UserDBSqlite as user_db_sqlite;
 use crate::rest::state::AppState;
 use crate::rest::user_request::UserRequest;
-use crate::service::user_service::UserService as user_service;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
@@ -14,13 +12,16 @@ pub async fn create_user(State(state): State<AppState>,payload: Json<UserRequest
 
     info!("Salvando o usuario");
     let user = user_model::new(payload.username.clone(),
-                                     payload.email.clone(), payload.age.clone());
+                                      payload.email.clone(), payload.age.clone());
 
     state.user_service.create_user(&user).await
         .map(|_| info!("Usuario: {} salvo com sucesso!", payload.username))
         .map_err(|e| {
             error!("Erro ao salvar o usuario: {}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+            match e {
+                crate::service::user_service::UserError::NotFound => (StatusCode::NOT_FOUND, e.to_string()),
+                _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string()),
+            }
         })?;
 
     Ok((StatusCode::CREATED, payload))
@@ -32,7 +33,13 @@ pub async fn get_users(State(state): State<AppState>)
 
     let users = state.user_service.get_all_users()
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        .map_err(|e| {
+            error!("Erro ao buscar usuarios: {}", e);
+            match e {
+                crate::service::user_service::UserError::NotFound => (StatusCode::NOT_FOUND, e.to_string()),
+                _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string()),
+            }
+        })?;
 
     let mut user_response:Vec<UserRequest>  = vec![];
 
@@ -52,7 +59,13 @@ pub async fn get_user(State(state): State<AppState>, Path(username):Path<String>
 
     let user_find = state.user_service.find_user_by_username(&username)
         .await
-        .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
+        .map_err(|e| {
+            error!("Erro ao buscar usuario {}: {}", username, e);
+            match e {
+                crate::service::user_service::UserError::NotFound => (StatusCode::NOT_FOUND, e.to_string()),
+                _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string()),
+            }
+        })?;
 
     let user_response = UserRequest {
         username: user_find.username().to_string(),
@@ -69,7 +82,13 @@ pub async fn delete_user(State(state): State<AppState>,Path(username):Path<Strin
 
     state.user_service.delete_user_by_username(&username)
         .await
-        .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
+        .map_err(|e| {
+            error!("Erro ao deletar usuario {}: {}", username, e);
+            match e {
+                crate::service::user_service::UserError::NotFound => (StatusCode::NOT_FOUND, e.to_string()),
+                _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string()),
+            }
+        })?;
 
     Ok((StatusCode::OK, format!("Usuario: {} deletado com sucesso!", username)))
 }

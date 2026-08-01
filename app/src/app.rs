@@ -30,6 +30,15 @@ async fn main() -> Result<(), anyhow::Error> {
             })?
     );
 
+    sqlx::migrate!("./migrations")
+        .run(user_db.get_pool())
+        .await
+        .map_err(|e| {
+            error!("Erro ao rodar migrações: {}", e);
+            e
+        })?;
+
+
     let user_servicer = user_service::new(user_db);
 
     let app_state = AppState {

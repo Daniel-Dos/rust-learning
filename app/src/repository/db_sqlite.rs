@@ -11,6 +11,10 @@ impl UserDBSqlite {
         Self { db: pool }
     }
 
+    pub fn get_pool(&self) -> &SqlitePool {
+        &self.db
+    }
+
     pub async fn save_user(&self, user: &User) -> Result<(), sqlx::Error> {
         sqlx::query("INSERT into users (username, email, age) VALUES (?, ?, ?)")
             .bind(user.username())
@@ -36,40 +40,31 @@ impl UserDBSqlite {
         Ok(user)
     }
 
-    pub async fn delete_user_by_username(&self, username: &str) -> Result<(), sqlx::Error> {
+    pub async fn delete_user_by_username(&self, username: &str) -> Result<u64, sqlx::Error> {
         let result = sqlx::query("DELETE FROM users WHERE username = ?")
             .bind(username)
             .execute(&self.db)
             .await?;
 
-        if result.rows_affected() == 0 {
-            return Err(sqlx::Error::RowNotFound);
-        }
-        Ok(())
+        Ok(result.rows_affected())
     }
 
-    pub async fn delete_user(&self, id: &i32) -> Result<(), sqlx::Error> {
-        let resut = sqlx::query("Delete from users where id = ?")
+    pub async fn delete_user(&self, id: &i32) -> Result<u64, sqlx::Error> {
+        let result = sqlx::query("Delete from users where id = ?")
             .bind(id)
             .execute(&self.db)
             .await?;
 
-        if resut.rows_affected() == 0 {
-            return Err(sqlx::Error::RowNotFound);
-        }
-        Ok(())
+        Ok(result.rows_affected())
     }
 
-    pub async fn update_user_email(&self, id: &i32, email: &str) -> Result<(), sqlx::Error> {
+    pub async fn update_user_email(&self, id: &i32, email: &str) -> Result<u64, sqlx::Error> {
         let result  = sqlx::query("update users set email = ? where id = ?")
             .bind(email)
             .bind(id)
             .execute(&self.db)
             .await?;
 
-        if result.rows_affected() == 0 {
-            return Err(sqlx::Error::RowNotFound);
-        }
-        Ok(())
+        Ok(result.rows_affected())
     }
 }
