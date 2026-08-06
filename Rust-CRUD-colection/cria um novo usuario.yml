@@ -10,14 +10,19 @@ http:
     type: json
     data: |-
       {
-       "username":"Teste3",
+        "username": "Teste3",
         "email": "teste2@teste.com",
-        "age": 3
+        "age": 3,
+        "user_id": "{{userId}}"
       }
   auth: inherit
 
 runtime:
   scripts:
+    - type: before-request
+      code: |-
+        const { v4: uuidv4 } = require('uuid');
+        bru.setVar('userId', uuidv4());
     - type: after-response
       code: bru.setVar("username", res.body.username);
 

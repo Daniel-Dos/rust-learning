@@ -16,10 +16,11 @@ impl UserDBSqlite {
     }
 
     pub async fn save_user(&self, user: &User) -> Result<(), sqlx::Error> {
-        sqlx::query("INSERT into users (username, email, age) VALUES (?, ?, ?)")
+        sqlx::query("INSERT into users (username, email, age, userid) VALUES (?, ?, ?, ?)")
             .bind(user.username())
             .bind(user.email())
             .bind(user.age())
+            .bind(user.user_id())
             .execute(&self.db)
             .await?;
         Ok(())

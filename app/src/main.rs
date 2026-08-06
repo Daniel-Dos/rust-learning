@@ -29,8 +29,8 @@ async fn run() -> Result<()> {
 
     info!("criado o usuario.");
     let user1 = user_model::new(String::from(generate_random_username()),
-                                     String::from(generate_random_email()),
-                                     generate_random_number());
+                                String::from(generate_random_email()),
+                                generate_random_number(), "67e55044-10b1-426f-9247-bb680e5fe0c8".parse()?);
     info!("Salvando o usuario");
     user_service.create_user(&user1).await
         .map(|_| info!("Usuario: {} salvo com sucesso!", user1.username()))

@@ -4,16 +4,17 @@ use crate::rest::user_request::{UserRequest, UserUpdate};
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use serde::de::Unexpected::Option;
 use tracing::{error, info};
+use uuid::Uuid;
 
-pub async fn create_user(State(state): State<AppState>,payload: Json<UserRequest>)
-    -> Result<(StatusCode, Json<UserRequest>), (StatusCode, String)> {
+pub async fn create_user(State(state): State<AppState>, mut payload: Json<UserRequest>)
+                         -> Result<(StatusCode, Json<UserRequest>), (StatusCode, String)> {
     info!("Criando um novo Usuario");
-
-    info!("Salvando o usuario");
+    let user_id = payload.user_id
+        .get_or_insert_with(|| Uuid::new_v4().to_string())
+        .clone();
     let user = user_model::new(payload.username.clone(),
-                                      payload.email.clone(), payload.age.clone());
+                               payload.email.clone(), payload.age.clone(), user_id);
 
     state.user_service.create_user(&user).await
         .map(|_| info!("Usuario: {} salvo com sucesso!", payload.username))
@@ -49,6 +50,7 @@ pub async fn get_users(State(state): State<AppState>)
             username: users_list.username().to_string(),
             email: users_list.email().to_string(),
             age: users_list.age().clone(),
+            user_id: Some(users_list.user_id().to_string()),
         });
     }
     Ok((StatusCode::OK, Json(user_response)))
@@ -72,6 +74,7 @@ pub async fn get_user(State(state): State<AppState>, Path(username):Path<String>
         username: user_find.username().to_string(),
         email: user_find.email().to_string(),
         age: user_find.age().clone(),
+        user_id:Some(user_find.user_id().to_string()),
     };
 
     Ok((StatusCode::OK, Json(user_response)))
