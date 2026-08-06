@@ -51,6 +51,13 @@ impl UserService {
         })
     }
 
+    pub async fn find_user_by_user_id(&self, user_id: &str) -> Result<User, UserError> {
+        self.db.find_user_by_user_id(user_id).await.map_err(|e| match e {
+            sqlx::Error::RowNotFound => UserError::NotFound,
+            _ => UserError::Internal(e),
+        })
+    }
+
     pub async fn delete_user_by_username(&self, username: &str) -> Result<(), UserError> {
         let rows = self.db.delete_user_by_username(username).await.map_err(UserError::from)?;
         if rows == 0 {
@@ -59,8 +66,24 @@ impl UserService {
         Ok(())
     }
 
+    pub async fn delete_user_by_user_id(&self, user_id: &str) -> Result<(), UserError> {
+        let rows = self.db.delete_user_by_user_id(user_id).await.map_err(UserError::from)?;
+        if rows == 0 {
+            return Err(UserError::NotFound);
+        }
+        Ok(())
+    }
+
     pub async fn update_user_email_by_username(&self, username: &str, email: &str) -> Result<(), UserError> {
         let rows = self.db.update_user_email_by_username(username, email).await.map_err(UserError::from)?;
+        if rows == 0 {
+            return Err(UserError::NotFound);
+        }
+        Ok(())
+    }
+
+    pub async fn update_user_email_by_user_id(&self, user_id: &str, email: &str) -> Result<(), UserError> {
+        let rows = self.db.update_user_email_by_user_id(user_id, email).await.map_err(UserError::from)?;
         if rows == 0 {
             return Err(UserError::NotFound);
         }

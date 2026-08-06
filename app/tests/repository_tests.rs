@@ -15,7 +15,7 @@ async fn should_save_and_get_user(pool: SqlitePool) {
 
     let db = UserDBSqlite::new(pool);
 
-    let user1  = User::new("Teste".to_string(),"teste@teste.com".to_string(), 20);
+    let user1  = User::new("Teste".to_string(),"teste@teste.com".to_string(), 20,"123".to_string());
     db.save_user(&user1).await.unwrap();
 
     let users = db.find_all_users().await.unwrap();
@@ -28,7 +28,7 @@ async fn should_delete_user(pool: SqlitePool){
    // setup_db(&pool).await;
     let db = UserDBSqlite::new(pool);
 
-    let user1  = User::new("Teste".to_string(),"teste@teste.com".to_string(), 20);
+    let user1  = User::new("Teste".to_string(),"teste@teste.com".to_string(), 20, "123".to_string());
     db.save_user(&user1).await.unwrap();
 
     let users = db.find_all_users().await.unwrap();
@@ -43,7 +43,7 @@ async fn should_update_user_email(pool: SqlitePool){
     //setup_db(&pool).await;
     let db = UserDBSqlite::new(pool);
 
-    let user1  = User::new("Teste".to_string(),"teste@teste.com".to_string(), 20);
+    let user1  = User::new("Teste".to_string(),"teste@teste.com".to_string(), 20,"123".to_string());
     db.save_user(&user1).await.unwrap();
 
     let users = db.find_all_users().await.unwrap();
