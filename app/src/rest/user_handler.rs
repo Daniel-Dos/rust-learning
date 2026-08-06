@@ -60,7 +60,7 @@ pub async fn get_user(State(state): State<AppState>, Path(username):Path<String>
     -> Result<(StatusCode, Json<UserRequest>), (StatusCode, String)> {
     info!("Obtendo os dados do usuario: {}", username);
 
-    let user_find = state.user_service.find_user_by_username(&username)
+    let user_find = state.user_service.find_user_by_user_id(&username)
         .await
         .map_err(|e| {
             error!("Erro ao buscar usuario {}: {}", username, e);
@@ -80,40 +80,40 @@ pub async fn get_user(State(state): State<AppState>, Path(username):Path<String>
     Ok((StatusCode::OK, Json(user_response)))
 }
 
-pub async fn delete_user(State(state): State<AppState>,Path(username):Path<String>)
+pub async fn delete_user(State(state): State<AppState>,Path(user_id):Path<String>)
     -> Result<(StatusCode, String), (StatusCode, String)> {
-    info!("Deletentando o usuario: {}", username);
+    info!("Deletentando o usuario: {}", user_id);
 
-    state.user_service.delete_user_by_username(&username)
+    state.user_service.delete_user_by_user_id(&user_id)
         .await
         .map_err(|e| {
-            error!("Erro ao deletar usuario {}: {}", username, e);
+            error!("Erro ao deletar usuario {}: {}", user_id, e);
             match e {
                 crate::service::user_service::UserError::NotFound => (StatusCode::NOT_FOUND, e.to_string()),
                 _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string()),
             }
         })?;
 
-    Ok((StatusCode::OK, format!("Usuario: {} deletado com sucesso!", username)))
+    Ok((StatusCode::OK, format!("Usuario: {} deletado com sucesso!", user_id)))
 }
 
-pub async fn update_user(State(state): State<AppState>, Path(username):Path<String>, payload: Json<UserUpdate>)
+pub async fn update_user(State(state): State<AppState>, Path(user_id):Path<String>, payload: Json<UserUpdate>)
     -> Result<(StatusCode, String), (StatusCode, String)> {
-    info!("Atualizando o email do usuario: {}", username);
+    info!("Atualizando o email do usuario: {}", user_id);
 
     let Some(email) = payload.email.as_deref() else {
         return Err((StatusCode::BAD_REQUEST, "Campo 'email' é obrigatório".to_string()));
     };
 
-    state.user_service.update_user_email_by_username(&username, &email)
+    state.user_service.update_user_email_by_user_id(&user_id, &email)
         .await
         .map_err(|e| {
-            error!("Erro ao atualizar email do usuario {}: {}", username, e);
+            error!("Erro ao atualizar email do usuario {}: {}", user_id, e);
             match e {
                 crate::service::user_service::UserError::NotFound => (StatusCode::NOT_FOUND, e.to_string()),
                 _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string()),
             }
         })?;
 
-    Ok((StatusCode::OK, format!("Email do usuario: {} atualizado com sucesso!", username)))
+    Ok((StatusCode::OK, format!("Email do usuario: {} atualizado com sucesso!", user_id)))
 }

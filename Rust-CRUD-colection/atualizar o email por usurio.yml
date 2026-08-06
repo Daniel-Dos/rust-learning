@@ -5,16 +5,12 @@ info:
 
 http:
   method: PUT
-  url: http://localhost:8080/api/users/:username
-  params:
-    - name: username
-      value: Teste3
-      type: path
+  url: http://localhost:8080/api/users/{{user_id}}
   body:
     type: json
     data: |-
       {
-        "email": "test3@teste.com"
+        "email": "aaa@teste.com"
       }
   auth: inherit
 

@@ -41,9 +41,26 @@ impl UserDBSqlite {
         Ok(user)
     }
 
+    pub async fn find_user_by_user_id(&self, user_id: &str) -> Result<User, sqlx::Error>{
+        let user = sqlx::query_as::<_, User>("select * from users where userid = ?")
+            .bind(user_id)
+            .fetch_one(&self.db)
+            .await?;
+        Ok(user)
+    }
+
     pub async fn delete_user_by_username(&self, username: &str) -> Result<u64, sqlx::Error> {
         let result = sqlx::query("DELETE FROM users WHERE username = ?")
             .bind(username)
+            .execute(&self.db)
+            .await?;
+
+        Ok(result.rows_affected())
+    }
+
+    pub async fn delete_user_by_user_id(&self, user_id: &str) -> Result<u64, sqlx::Error> {
+        let result = sqlx::query("DELETE FROM users WHERE userid = ?")
+            .bind(user_id)
             .execute(&self.db)
             .await?;
 
@@ -76,6 +93,16 @@ impl UserDBSqlite {
         .execute(&self.db)
         .await?;
         
+        Ok(result.rows_affected())
+    }
+
+    pub async fn update_user_email_by_user_id(&self, user_id: &str, email: &str) -> Result<u64, sqlx::Error> {
+        let result = sqlx::query("update users set email = ? where userid = ?")
+            .bind(email)
+            .bind(user_id)
+            .execute(&self.db)
+            .await?;
+
         Ok(result.rows_affected())
     }
 }
